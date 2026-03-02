@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Subject {
@@ -19,7 +19,7 @@ export interface PuchCard {
   providedIn: 'root',
 })
 export class Api {
-  private baseUrl = 'http://localhost:8000';
+  private baseUrl = 'http://192.168.1.39:8002';
 
   constructor(private http: HttpClient) {}
 
@@ -28,7 +28,8 @@ export class Api {
   }
 
   getActiveSubjects(): Observable<Subject[]> {
-    return this.http.get<Subject[]>(`${this.baseUrl}/subjects/active`);
+    const params = new HttpParams().set('status', '1');
+    return this.http.get<Subject[]>(`${this.baseUrl}/subjects/`, { params });
   }
 
   createSubject(name: string, status: number = 1): Observable<Subject> {
@@ -48,5 +49,14 @@ export class Api {
 
   createPuchCard(s_id: number, status: number, datetime: string): Observable<PuchCard> {
     return this.http.post<PuchCard>(`${this.baseUrl}/puchcards/`, { s_id, status, datetime });
+  }
+
+  deletePuchCard(p_id: number): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/puchcards/${p_id}`);
+  }
+
+  getCompletionStatus(year: number, month: number): Observable<{[key: number]: boolean}> {
+    const params = new HttpParams().set('year', year).set('month', month);
+    return this.http.get<{[key: number]: boolean}>(`${this.baseUrl}/puchcards/completion`, { params });
   }
 }

@@ -1,18 +1,18 @@
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime as dt
 
 class PuchCardBase(BaseModel):
     s_id: int
     status: int
-    datetime: Optional[datetime] = None
+    datetime: Optional[dt] = None
 
 class PuchCardCreate(PuchCardBase):
     pass
 
 class PuchCard(PuchCardBase):
     p_id: int
-
+    
     class Config:
         orm_mode = True
 

@@ -7,62 +7,8 @@ import { Api, Subject, PuchCard } from '../../services/api';
   selector: 'app-calendar-view',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  template: `
-    <div class="calendar-container">
-      <h2>打卡日历</h2>
-      
-      <div class="controls">
-        <button (click)="prevMonth()">上个月</button>
-        <span>{{ currentYear }}年 {{ currentMonth }}月</span>
-        <button (click)="nextMonth()">下个月</button>
-      </div>
-
-      <div class="table-wrapper">
-        <table class="calendar-table">
-          <thead>
-            <tr>
-              <th class="sticky-col">打卡项</th>
-              <th *ngFor="let day of daysInMonth" [class.today]="isToday(day)">
-                {{ day }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let subject of activeSubjects">
-              <td class="sticky-col">{{ subject.name }}</td>
-              <td *ngFor="let day of daysInMonth" [class.today]="isToday(day)" class="cell">
-                <input 
-                  type="checkbox" 
-                  [checked]="isPunched(subject.s_id, day)" 
-                  (change)="togglePunch(subject.s_id, day, $event)"
-                  [disabled]="isFuture(day)"
-                />
-              </td>
-            </tr>
-             <!-- 每日完成状态行 -->
-            <tr class="summary-row">
-              <td class="sticky-col"><strong>每日完成情况</strong></td>
-              <td *ngFor="let day of daysInMonth" [class.today]="isToday(day)" class="cell">
-                <span *ngIf="isDayComplete(day)" class="completed">✅</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .calendar-container { padding: 20px; }
-    .controls { margin-bottom: 15px; display: flex; gap: 10px; align-items: center; }
-    .table-wrapper { overflow-x: auto; }
-    .calendar-table { border-collapse: collapse; min-width: 100%; }
-    .calendar-table th, .calendar-table td { border: 1px solid #ddd; padding: 5px; text-align: center; min-width: 30px; }
-    .sticky-col { position: sticky; left: 0; background: #f9f9f9; z-index: 1; font-weight: bold; min-width: 100px; text-align: left; }
-    .today { background-color: #e6f7ff; }
-    .cell { cursor: pointer; }
-    .completed { color: green; font-size: 1.2em; }
-    .summary-row { background-color: #f0f0f0; }
-  `]
+  templateUrl: './calendar-view.html',
+  styleUrls: ['./calendar-view.css']
 })
 export class CalendarView implements OnInit {
   currentYear: number = new Date().getFullYear();
@@ -71,6 +17,7 @@ export class CalendarView implements OnInit {
   
   activeSubjects: Subject[] = [];
   puchCards: PuchCard[] = [];
+  completionStatus: {[key: number]: boolean} = {};
 
   constructor(private api: Api) {}
 
@@ -93,6 +40,13 @@ export class CalendarView implements OnInit {
     // 加载当月打卡记录
     this.api.getPuchCards(this.currentYear, this.currentMonth).subscribe(cards => {
       this.puchCards = cards;
+      this.checkCompletion(); // 加载完打卡记录后，顺便更新一次完成状态
+    });
+  }
+
+  checkCompletion() {
+    this.api.getCompletionStatus(this.currentYear, this.currentMonth).subscribe(status => {
+      this.completionStatus = status;
     });
   }
 
@@ -151,13 +105,25 @@ export class CalendarView implements OnInit {
       const dateStr = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString();
       
       this.api.createPuchCard(s_id, 1, dateStr).subscribe(newCard => {
-        this.puchCards.push(newCard);
+        // 如果后端返回了已存在的记录，newCard 可能是旧的。但这里 push 不会去重，虽然显示上没问题（find 只找第一个）。
+        if (!this.getPunch(s_id, day)) {
+            this.puchCards.push(newCard);
+        }
       });
     } else {
-      // Remove punch (Optional feature, backend doesn't support delete yet in this simple version, 
-      // but UI allows unchecked. For now, let's just warn or prevent unchecking if backend doesn't support delete)
-      alert("目前暂不支持取消打卡 (后端需实现删除接口)");
-      event.target.checked = true; // Revert
+      // Cancel punch
+      const punch = this.getPunch(s_id, day);
+      if (punch) {
+        this.api.deletePuchCard(punch.p_id).subscribe(() => {
+          this.puchCards = this.puchCards.filter(c => c.p_id !== punch.p_id);
+        }, error => {
+          console.error('Failed to delete punch', error);
+          event.target.checked = true; // Revert if failed
+        });
+      } else {
+        // Should not happen if UI is consistent
+        console.warn('Punch not found for deletion');
+      }
     }
   }
 
