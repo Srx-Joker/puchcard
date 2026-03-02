@@ -1,0 +1,41 @@
+<div class="subject-container">
+  <h2>打卡项管理</h2>
+  
+  <div class="add-form">
+    <input [(ngModel)]="newSubjectName" placeholder="输入打卡项名称" />
+    <button (click)="addSubject()">添加</button>
+  </div>
+
+  <table class="subject-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>名称</th>
+        <th>状态</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let subject of subjects">
+        <td>{{ subject.s_id }}</td>
+        <td>
+          <span *ngIf="!subject.isEditing">{{ subject.name }}</span>
+          <input *ngIf="subject.isEditing" [(ngModel)]="subject.editName" />
+        </td>
+        <td>
+          <span [class.active]="subject.status === 1" [class.inactive]="subject.status === 2">
+            {{ subject.status === 1 ? '启用' : '关闭' }}
+          </span>
+        </td>
+        <td>
+          <button *ngIf="!subject.isEditing" (click)="startEdit(subject)">编辑</button>
+          <button *ngIf="subject.isEditing" (click)="saveEdit(subject)">保存</button>
+          <button *ngIf="subject.isEditing" (click)="cancelEdit(subject)">取消</button>
+          
+          <button *ngIf="subject.status === 1" (click)="toggleStatus(subject)">关闭</button>
+          <button *ngIf="subject.status === 2" (click)="toggleStatus(subject)">启用</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

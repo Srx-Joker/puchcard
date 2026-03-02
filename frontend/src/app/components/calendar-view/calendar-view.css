@@ -1,0 +1,10 @@
+.calendar-container { padding: 20px; }
+.controls { margin-bottom: 15px; display: flex; gap: 10px; align-items: center; }
+.table-wrapper { overflow-x: auto; }
+.calendar-table { border-collapse: collapse; min-width: 100%; }
+.calendar-table th, .calendar-table td { border: 1px solid #ddd; padding: 5px; text-align: center; min-width: 30px; }
+.sticky-col { position: sticky; left: 0; background: #f9f9f9; z-index: 1; font-weight: bold; min-width: 100px; text-align: left; }
+.today { background-color: #e6f7ff; }
+.cell { cursor: pointer; }
+.completed { color: green; font-size: 1.2em; }
+.summary-row { background-color: #f0f0f0; }

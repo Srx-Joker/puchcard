@@ -1,0 +1,7 @@
+.subject-container { padding: 20px; border: 1px solid #ccc; margin-bottom: 20px; }
+.add-form { margin-bottom: 15px; }
+.subject-table { width: 100%; border-collapse: collapse; }
+.subject-table th, .subject-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+.active { color: green; font-weight: bold; }
+.inactive { color: red; }
+button { margin-right: 5px; }

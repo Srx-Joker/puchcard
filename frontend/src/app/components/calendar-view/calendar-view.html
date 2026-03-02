@@ -1,0 +1,42 @@
+<div class="calendar-container">
+  <h2>打卡日历</h2>
+  
+  <div class="controls">
+    <button (click)="prevMonth()">上个月</button>
+    <span>{{ currentYear }}年 {{ currentMonth }}月</span>
+    <button (click)="nextMonth()">下个月</button>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="calendar-table">
+      <thead>
+        <tr>
+          <th class="sticky-col">打卡项</th>
+          <th *ngFor="let day of daysInMonth" [class.today]="isToday(day)">
+            {{ day }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let subject of activeSubjects">
+          <td class="sticky-col">{{ subject.name }}</td>
+          <td *ngFor="let day of daysInMonth" [class.today]="isToday(day)" class="cell">
+            <input 
+              type="checkbox" 
+              [checked]="isPunched(subject.s_id, day)" 
+              (change)="togglePunch(subject.s_id, day, $event)"
+              [disabled]="isFuture(day)"
+            />
+          </td>
+        </tr>
+         <!-- 每日完成状态行 -->
+        <tr class="summary-row">
+          <td class="sticky-col"><strong>每日完成情况</strong></td>
+          <td *ngFor="let day of daysInMonth" [class.today]="isToday(day)" class="cell">
+            <span *ngIf="isDayComplete(day)" class="completed">✅</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
